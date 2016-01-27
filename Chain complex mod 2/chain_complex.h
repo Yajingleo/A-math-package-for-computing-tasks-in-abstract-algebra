@@ -11,50 +11,35 @@
 
 #ifndef chain_complex_h
 #define chain_complex_h
-
-#include "node_diff.h"
+#include <string>
 #include <set>
 #include <unordered_map>
-#include <string>
 
-class chain_complex{
+#include "Node_Diff.h"
+
+class Chain_Complex
+{
 protected:
-    std::string name;
-    std::set<int> generators;
-    std::unordered_map<int, node_diff> differentials;
+    std::string Name;
+    std::set<int> Generators;
+    std::unordered_map<int, Node_Diff> Differentials;
 
-    
-    bool cancellation(int x, int y);
+    bool Cancel(int x, int y);
     
 public:
-    
     
     /*returns the rank of the homology of this complex*/
-    chain_complex (std::set<int> dots, std::string name): name (name), generators (dots){
-        for (int x: generators) differentials[x]=node_diff(x);
-    };
-    chain_complex (){};
-    virtual ~chain_complex(){};
+    Chain_Complex (std::set<int> Dots, std::string Name);
+    Chain_Complex (){};
+    virtual ~Chain_Complex(){};
     
-    void printname();
-    void mod2put(int k, std::unordered_set<int> &A);
-    int get_homology();
+    void PrintName();
+    void Mod2Put(int k, std::unordered_set<int> &A);
+    int Get_Homology();
     void D(int dot, std::unordered_set<int> diff);
-    void printout();
+    void PrintOut();
 };
 
-class graded_complex : public chain_complex{
-protected:
-    std::unordered_map<int, int> grading;
-    std::unordered_map<int, int> graded_homology;
-
-
-public:
-    graded_complex(std::set<int> dots,std::string name): chain_complex(dots,name){};
-    
-    void set_grading(std::unordered_set<int> gen, int deg);
-    int betti_number(int deg);
-    int get_grading(int gen);
-};
+ 
 
 #endif /* chain_complex_h */

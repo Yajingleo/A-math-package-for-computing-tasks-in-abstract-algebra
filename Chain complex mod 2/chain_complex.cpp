@@ -9,84 +9,134 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include "chain_complex.h"
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
 
-void chain_complex::mod2put(int k, std::unordered_set<int> &A){
-    if (A.find(k)!=A.end()) A.erase(k);
-    else A.insert(k);
+#include "Chain_Complex.h"
+
+
+Chain_Complex::Chain_Complex (std::set<int> Dots, std::string Name): Name (Name), Generators (Dots)
+{
+    for (int x: Generators) Differentials[x]=Node_Diff(x);
+};
+
+
+void Chain_Complex::Mod2Put(int k, std::unordered_set<int> & A)
+{
+    if (A.find(k)!=A.end())
+    {
+        A.erase(k);
+    }
+    else
+    {
+        A.insert(k);
+    }
 }
 
-bool chain_complex::cancellation(int x, int y){
-    if (generators.find(x)==generators.end() || generators.find(y)==generators.end() || differentials[x].diff.find(y)==differentials[x].diff.end()) return false;
+bool Chain_Complex::Cancel(int x, int y)
+{
+    if (Generators.find(x)==Generators.end()
+        || Generators.find(y)==Generators.end()
+        || Differentials[x].Diff.find(y)==Differentials[x].Diff.end()
+        )
+    {
+        return false;
+    }
     
-    for (int i: differentials[y].prediff) {
-        if (i!=x) {
-            differentials[i].diff.erase(y);
-            for (int k: differentials[x].diff) {
-                if (k!=y) mod2put(k, differentials[i].diff);
+    
+    for( int i: Differentials[y].Prediff )
+    {
+        if (i != x)
+        {
+            Differentials[i].Diff.erase(y);
+            for (int k: Differentials[x].Diff)
+            {
+                if (k != y) Mod2Put(k, Differentials[i].Diff);
             }
         }
     }
-    for (int j: differentials[x].diff){
-        if (j!=y) {
-            differentials[j].prediff.erase(x);
+    for (int j: Differentials[x].Diff)
+    {
+        if (j != y)
+        {
+            Differentials[j].Prediff.erase(x);
         }
     }
-    generators.erase(x);
-    generators.erase(y);
+    
+    Generators.erase(x);
+    Generators.erase(y);
+    
     return true;
 }
 
-int chain_complex::get_homology(){
+int Chain_Complex::Get_Homology()
+{
     int ans=0;
     std::vector<int> generators1;
-    while(!generators.empty()){
-        int x=*generators.begin();
-        if (differentials[x].diff.empty() && differentials[x].prediff.empty()) {
+    while(!Generators.empty())
+    {
+        int x = *Generators.begin();
+        if (Differentials[x].Diff.empty() && Differentials[x].Prediff.empty())
+        {
             ans++;
-            generators.erase(x);
+            Generators.erase(x);
             generators1.push_back(x);
         }
-        else if (!differentials[x].diff.empty()) {
-            int y=*differentials[x].diff.begin();
-            cancellation(x, y);
+        else if (!Differentials[x].Diff.empty())
+        {
+            int y=*Differentials[x].Diff.begin();
+            Cancel(x, y);
         }
-        else {
-            int y=*differentials[x].prediff.begin();
-            cancellation(y, x);
+        else
+        {
+            int y=*Differentials[x].Prediff.begin();
+            Cancel(y, x);
         }
     }
-    for (int x: generators1) generators.insert(x);
-    std::cout << "The homology of "<< name<<  " is of rank "<< ans <<std::endl;
+    
+    for (int x: generators1)
+    {
+        Generators.insert(x);
+    }
+    
+    std::cout << "The homology of "<< Name <<  " is of rank "<< ans <<std::endl;
+    
     return ans;
 }
 
-void chain_complex::printname(){
-    std:: cout << name <<std::endl;
+void Chain_Complex::PrintName()
+{
+    std:: cout << Name <<std::endl;
 }
 
 //chain_complex::chain_complex(){}
 
 
-void chain_complex::D(int dot,std::unordered_set<int> diffs){
-    differentials[dot].diff=diffs;
-    for (int k: diffs) {
-        differentials[k].prediff.insert(dot);
+void Chain_Complex::D(int Dot,std::unordered_set<int> Diffs)
+{
+    Differentials[Dot].Diff=Diffs;
+    for (int k: Diffs)
+    {
+        Differentials[k].Prediff.insert(Dot);
     }
 }
 
-void chain_complex::printout(){
-    for (int k: generators){
-        std::cout<< "d(" <<k <<")=";
+void Chain_Complex::PrintOut()
+{
+    for (int k: Generators)
+    {
+        std::cout<< "D(" << k << ")=";
         
-        if (differentials[k].diff.empty()){
-            std::cout<< "0;" <<std::endl;
-        }else {
+        if (Differentials[k].Diff.empty())
+        {
+            std::cout << "0;" << std::endl;
+        }
+        else
+        {
             std::string s;
-            for (int j: differentials[k].diff){
+            for (int j: Differentials[k].Diff)
+            {
                 s.append(std::to_string(j));
                 s+="+";
             }
@@ -94,7 +144,8 @@ void chain_complex::printout(){
             std::cout << s <<std::endl;
         }
     }
-/*    for (int k: generators){
+/*  //The following is for testing.
+    for (int k: generators){
         std::cout<< "prediff(" <<k <<")={";
         
         std::string s;
@@ -109,38 +160,6 @@ void chain_complex::printout(){
  */
 }
 
-int graded_complex::get_grading(int gen) {
-    if (!grading.empty()) return grading[gen];
-    else return INT_MIN;
-}
 
-int graded_complex::betti_number(int k){
-    if (graded_homology.find(k)!=graded_homology.end()) return graded_homology[k];
-    else {
-        std::vector<int> generators1;
-        while(!generators.empty()){
-            int x=*generators.begin();
-            if (differentials[x].diff.empty() && differentials[x].prediff.empty()) {
-                if (!grading.empty()) {int a=grading[x]; graded_homology[a]++;}
-                generators.erase(x);
-                generators1.push_back(x);
-            }
-            else if (!differentials[x].diff.empty()) {
-                int y=*differentials[x].diff.begin();
-                cancellation(x, y);
-            }
-            else {
-                int y=*differentials[x].prediff.begin();
-                cancellation(y, x);
-            }
-        }
-        for (int x: generators1) generators.insert(x);
-        return graded_homology[k];
-    }
-}
-
-void graded_complex::set_grading(std::unordered_set<int> gen, int deg){
-    for (int x: gen) grading[x]=deg;
-}
 
 
