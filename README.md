@@ -11,5 +11,5 @@ The most simplified definition is as follows: a vector space V and a linear map 
 In general, computing homology is equivalent to solving linear equations. See the following article for more details
 http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.41.2252&rep=rep1&type=pdf
 
-The time complexity is usually between O(n^2) and O(n^3). However, using Z/2 coefficients, the time complexity can be reduced to linear. This is what is implemented here. 
+The time complexity using linear algebra such as [Gaussian eliminations](https://jeremykun.com/2013/04/10/computing-homology/) or matrix algebra is usually between O(n^2) and O(n^3). However, using Z/2 coefficients, the time complexity can be reduced to linear. This is what is implemented here. 
 
